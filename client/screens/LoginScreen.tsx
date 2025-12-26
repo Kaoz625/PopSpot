@@ -24,7 +24,7 @@ export default function LoginScreen() {
       >
         <View style={styles.heroSection}>
           <Image
-            source={require("@assets/images/icon.png")}
+            source={require("../../assets/images/icon.png")}
             style={styles.logo}
             resizeMode="contain"
           />

@@ -8,6 +8,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  Linking,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -28,6 +29,7 @@ export default function PostGigScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { addGig } = useGigs();
+  const [permission, requestPermission] = ImagePicker.useMediaLibraryPermissions();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -36,15 +38,50 @@ export default function PostGigScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.8,
-    });
+    try {
+      if (!permission?.granted) {
+        if (permission?.status === "denied" && !permission?.canAskAgain) {
+          Alert.alert(
+            "Permission Required",
+            "Photo library access is required to add images. Please enable it in Settings.",
+            [
+              { text: "Cancel", style: "cancel" },
+              Platform.OS !== "web"
+                ? {
+                    text: "Open Settings",
+                    onPress: async () => {
+                      try {
+                        await Linking.openSettings();
+                      } catch (e) {
+                        // Settings not available
+                      }
+                    },
+                  }
+                : { text: "OK" },
+            ].filter(Boolean)
+          );
+          return;
+        }
 
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
+        const result = await requestPermission();
+        if (!result.granted) {
+          return;
+        }
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("Image picker error:", error);
+      Alert.alert("Error", "Unable to access photo library. Please try again.");
     }
   };
 
@@ -63,7 +100,7 @@ export default function PostGigScreen() {
       description: description.trim(),
       price: Number(price),
       category,
-      image: imageUri ? { uri: imageUri } : require("@assets/images/icon.png"),
+      image: imageUri ? { uri: imageUri } : require("../../assets/images/icon.png"),
       location: "Brooklyn, NY",
       latitude: 40.6892 + (Math.random() - 0.5) * 0.05,
       longitude: -73.9442 + (Math.random() - 0.5) * 0.05,

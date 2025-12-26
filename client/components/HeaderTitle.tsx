@@ -2,13 +2,9 @@ import React from "react";
 import { View, StyleSheet, Image } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
-import { Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 
-interface HeaderTitleProps {
-  title: string;
-}
-
-export function HeaderTitle({ title }: HeaderTitleProps) {
+export function HeaderTitle() {
   return (
     <View style={styles.container}>
       <Image
@@ -16,7 +12,9 @@ export function HeaderTitle({ title }: HeaderTitleProps) {
         style={styles.icon}
         resizeMode="contain"
       />
-      <ThemedText style={styles.title}>{title}</ThemedText>
+      <ThemedText type="h4" style={styles.title}>
+        PopSpot
+      </ThemedText>
     </View>
   );
 }
@@ -30,10 +28,10 @@ const styles = StyleSheet.create({
   icon: {
     width: 28,
     height: 28,
+    borderRadius: 6,
     marginRight: Spacing.sm,
   },
   title: {
-    fontSize: 17,
-    fontWeight: "600",
+    color: Colors.light.primary,
   },
 });

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   Image,
   Pressable,
   RefreshControl,
+  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -20,6 +21,8 @@ import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const categories = ["All", "Food", "Services", "Art", "Tutoring", "Fitness", "Tech", "Hair Braiding", "House Cleaning", "Other"];
 
 function GigCard({ gig, onPress }: { gig: Gig; onPress: () => void }) {
   const { theme } = useTheme();
@@ -68,7 +71,15 @@ export default function FeedScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { gigs } = useGigs();
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const filteredGigs = useMemo(() => {
+    if (selectedCategory === "All") {
+      return gigs;
+    }
+    return gigs.filter((gig) => gig.category === selectedCategory);
+  }, [gigs, selectedCategory]);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -79,10 +90,51 @@ export default function FeedScreen() {
     navigation.navigate("GigDetail", { gig });
   };
 
+  const renderFilterChips = () => (
+    <View style={[styles.filterContainer, { paddingTop: headerHeight + Spacing.md }]}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterScroll}
+      >
+        {categories.map((cat) => (
+          <Pressable
+            key={cat}
+            onPress={() => setSelectedCategory(cat)}
+            style={[
+              styles.filterChip,
+              {
+                backgroundColor:
+                  selectedCategory === cat
+                    ? Colors.light.primary
+                    : theme.cardBackground,
+                borderColor:
+                  selectedCategory === cat
+                    ? Colors.light.primary
+                    : theme.border,
+              },
+            ]}
+          >
+            <ThemedText
+              type="small"
+              style={{
+                color: selectedCategory === cat ? "#FFFFFF" : theme.text,
+                fontWeight: selectedCategory === cat ? "600" : "400",
+              }}
+            >
+              {cat}
+            </ThemedText>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+
   return (
     <ThemedView style={styles.container}>
+      {renderFilterChips()}
       <FlatList
-        data={gigs}
+        data={filteredGigs}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <GigCard gig={item} onPress={() => handleGigPress(item)} />
@@ -90,7 +142,7 @@ export default function FeedScreen() {
         contentContainerStyle={[
           styles.list,
           {
-            paddingTop: headerHeight + Spacing.lg,
+            paddingTop: Spacing.md,
             paddingBottom: tabBarHeight + Spacing.xl,
           },
         ]}
@@ -106,7 +158,7 @@ export default function FeedScreen() {
           <View style={styles.emptyContainer}>
             <Feather name="inbox" size={48} color={theme.textSecondary} />
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.md }}>
-              No gigs available yet
+              No gigs in this category
             </ThemedText>
           </View>
         }
@@ -118,6 +170,20 @@ export default function FeedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  filterContainer: {
+    backgroundColor: "transparent",
+    paddingBottom: Spacing.sm,
+  },
+  filterScroll: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  filterChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   list: {
     paddingHorizontal: Spacing.lg,

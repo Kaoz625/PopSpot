@@ -2,7 +2,6 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import MainTabNavigator from "@/navigation/MainTabNavigator";
 import LoginScreen from "@/screens/LoginScreen";
-import PostGigScreen from "@/screens/PostGigScreen";
 import GigDetailScreen from "@/screens/GigDetailScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useAuth } from "@/context/AuthContext";
@@ -11,7 +10,6 @@ import { Gig } from "@/context/GigContext";
 export type RootStackParamList = {
   Login: undefined;
   Main: undefined;
-  PostGig: undefined;
   GigDetail: { gig: Gig };
 };
 
@@ -29,14 +27,6 @@ export default function RootStackNavigator() {
             name="Main"
             component={MainTabNavigator}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="PostGig"
-            component={PostGigScreen}
-            options={{
-              presentation: "modal",
-              headerTitle: "Post a Gig",
-            }}
           />
           <Stack.Screen
             name="GigDetail"

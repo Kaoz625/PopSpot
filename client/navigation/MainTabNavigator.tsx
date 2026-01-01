@@ -1,18 +1,16 @@
 import React from "react";
 import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import FeedScreen from "@/screens/FeedScreen";
 import MapScreen from "@/screens/MapScreen";
 import NotesScreen from "@/screens/NotesScreen";
+import PostGigScreen from "@/screens/PostGigScreen";
 import DashboardScreen from "@/screens/DashboardScreen";
 import { HeaderTitle } from "@/components/HeaderTitle";
 import { useTheme } from "@/hooks/useTheme";
 import { Colors } from "@/constants/theme";
-import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 export type MainTabParamList = {
   FeedTab: undefined;
@@ -22,11 +20,10 @@ export type MainTabParamList = {
   DashboardTab: undefined;
 };
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-function PostTabButton({ onPress }: { onPress: () => void }) {
+function PostTabButton({ onPress, accessibilityState }: any) {
+  const isSelected = accessibilityState?.selected;
   return (
     <Pressable
       onPress={onPress}
@@ -35,19 +32,14 @@ function PostTabButton({ onPress }: { onPress: () => void }) {
         { transform: [{ scale: pressed ? 0.95 : 1 }] },
       ]}
     >
-      <View style={styles.postButtonInner}>
+      <View style={[styles.postButtonInner, isSelected && styles.postButtonActive]}>
         <Feather name="plus" size={28} color="#FFFFFF" />
       </View>
     </Pressable>
   );
 }
 
-function EmptyComponent() {
-  return null;
-}
-
 export default function MainTabNavigator() {
-  const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
 
   return (
@@ -109,17 +101,11 @@ export default function MainTabNavigator() {
       />
       <Tab.Screen
         name="PostTab"
-        component={EmptyComponent}
+        component={PostGigScreen}
         options={{
-          tabBarButton: (props) => (
-            <PostTabButton onPress={() => navigation.navigate("PostGig")} />
-          ),
-        }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate("PostGig");
-          },
+          title: "",
+          headerTitle: "New Post",
+          tabBarButton: (props) => <PostTabButton {...props} />,
         }}
       />
       <Tab.Screen
@@ -166,5 +152,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  postButtonActive: {
+    backgroundColor: Colors.light.secondary,
   },
 });

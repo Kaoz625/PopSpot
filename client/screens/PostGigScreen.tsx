@@ -10,7 +10,7 @@ import {
   Platform,
   Linking,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -124,7 +124,11 @@ export default function PostGigScreen() {
       Alert.alert("Posted to Notes", "Your note has been shared with the community!");
     }
 
-    navigation.goBack();
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: "FeedTab",
+      })
+    );
   };
 
   return (

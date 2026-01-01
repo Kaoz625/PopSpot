@@ -7,16 +7,18 @@ import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import FeedScreen from "@/screens/FeedScreen";
 import MapScreen from "@/screens/MapScreen";
+import NotesScreen from "@/screens/NotesScreen";
 import DashboardScreen from "@/screens/DashboardScreen";
 import { HeaderTitle } from "@/components/HeaderTitle";
 import { useTheme } from "@/hooks/useTheme";
-import { useScreenOptions } from "@/hooks/useScreenOptions";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Colors } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 export type MainTabParamList = {
   FeedTab: undefined;
   MapTab: undefined;
+  PostTab: undefined;
+  NotesTab: undefined;
   DashboardTab: undefined;
 };
 
@@ -24,97 +26,135 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-function FloatingPostButton() {
-  const navigation = useNavigation<NavigationProp>();
-
+function PostTabButton({ onPress }: { onPress: () => void }) {
   return (
     <Pressable
-      onPress={() => navigation.navigate("PostGig")}
+      onPress={onPress}
       style={({ pressed }) => [
-        styles.fab,
+        styles.postButton,
         { transform: [{ scale: pressed ? 0.95 : 1 }] },
       ]}
     >
-      <Feather name="plus" size={28} color="#FFFFFF" />
+      <View style={styles.postButtonInner}>
+        <Feather name="plus" size={28} color="#FFFFFF" />
+      </View>
     </Pressable>
   );
 }
 
+function EmptyComponent() {
+  return null;
+}
+
 export default function MainTabNavigator() {
+  const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
-  const screenOptions = useScreenOptions();
 
   return (
-    <View style={{ flex: 1 }}>
-      <Tab.Navigator
-        initialRouteName="FeedTab"
-        screenOptions={{
-          ...screenOptions,
-          tabBarActiveTintColor: Colors.light.primary,
-          tabBarInactiveTintColor: theme.tabIconDefault,
-          tabBarStyle: {
-            position: "absolute",
-            backgroundColor: Platform.select({
-              ios: "transparent",
-              android: theme.backgroundRoot,
-            }),
-            borderTopWidth: 0,
-            elevation: 0,
-          },
-          tabBarBackground: () =>
-            Platform.OS === "ios" ? (
-              <BlurView
-                intensity={100}
-                tint={isDark ? "dark" : "light"}
-                style={StyleSheet.absoluteFill}
-              />
-            ) : null,
+    <Tab.Navigator
+      initialRouteName="FeedTab"
+      screenOptions={{
+        headerTitleAlign: "center",
+        headerTransparent: true,
+        headerTintColor: theme.text,
+        headerStyle: {
+          backgroundColor: Platform.select({
+            ios: "transparent",
+            android: theme.backgroundRoot,
+            web: theme.backgroundRoot,
+          }),
+        },
+        tabBarActiveTintColor: Colors.light.primary,
+        tabBarInactiveTintColor: theme.tabIconDefault,
+        tabBarStyle: {
+          position: "absolute",
+          backgroundColor: Platform.select({
+            ios: "transparent",
+            android: theme.backgroundRoot,
+          }),
+          borderTopWidth: 0,
+          elevation: 0,
+        },
+        tabBarBackground: () =>
+          Platform.OS === "ios" ? (
+            <BlurView
+              intensity={100}
+              tint={isDark ? "dark" : "light"}
+              style={StyleSheet.absoluteFill}
+            />
+          ) : null,
+      }}
+    >
+      <Tab.Screen
+        name="FeedTab"
+        component={FeedScreen}
+        options={{
+          title: "Feed",
+          headerTitle: () => <HeaderTitle />,
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="grid" size={size} color={color} />
+          ),
         }}
-      >
-        <Tab.Screen
-          name="FeedTab"
-          component={FeedScreen}
-          options={{
-            title: "Feed",
-            headerTitle: () => <HeaderTitle />,
-            tabBarIcon: ({ color, size }) => (
-              <Feather name="grid" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="MapTab"
-          component={MapScreen}
-          options={{
-            title: "Map",
-            headerTitle: "Brooklyn, NY",
-            tabBarIcon: ({ color, size }) => (
-              <Feather name="map" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="DashboardTab"
-          component={DashboardScreen}
-          options={{
-            title: "Dashboard",
-            headerTitle: "Dashboard",
-            tabBarIcon: ({ color, size }) => (
-              <Feather name="user" size={size} color={color} />
-            ),
-          }}
-        />
-      </Tab.Navigator>
-      <FloatingPostButton />
-    </View>
+      />
+      <Tab.Screen
+        name="MapTab"
+        component={MapScreen}
+        options={{
+          title: "Map",
+          headerTitle: "Brooklyn, NY",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="map" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="PostTab"
+        component={EmptyComponent}
+        options={{
+          tabBarButton: (props) => (
+            <PostTabButton onPress={() => navigation.navigate("PostGig")} />
+          ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate("PostGig");
+          },
+        }}
+      />
+      <Tab.Screen
+        name="NotesTab"
+        component={NotesScreen}
+        options={{
+          title: "Notes",
+          headerTitle: "Community Notes",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="file-text" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="DashboardTab"
+        component={DashboardScreen}
+        options={{
+          title: "Dashboard",
+          headerTitle: "Dashboard",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="user" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
-  fab: {
-    position: "absolute",
-    bottom: 100,
-    right: Spacing.lg,
+  postButton: {
+    top: -20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  postButtonInner: {
     width: 56,
     height: 56,
     borderRadius: 28,

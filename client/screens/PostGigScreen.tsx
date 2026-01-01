@@ -23,6 +23,11 @@ import { useGigs } from "@/context/GigContext";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 
 const categories = ["Food", "Services", "Art", "Tutoring", "Fitness", "Tech", "Hair Braiding", "House Cleaning", "Other"];
+const destinations = [
+  { id: "feed", label: "Feed Only", icon: "grid" as const },
+  { id: "notes", label: "Notes Only", icon: "file-text" as const },
+  { id: "both", label: "Both", icon: "layers" as const },
+];
 
 export default function PostGigScreen() {
   const navigation = useNavigation();
@@ -36,29 +41,33 @@ export default function PostGigScreen() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("Food");
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [destination, setDestination] = useState<"feed" | "notes" | "both">("feed");
 
   const pickImage = async () => {
     try {
       if (!permission?.granted) {
         if (permission?.status === "denied" && !permission?.canAskAgain) {
+          const buttons: { text: string; style?: "cancel" | "default" | "destructive"; onPress?: () => void }[] = [
+            { text: "Cancel", style: "cancel" },
+          ];
+          if (Platform.OS !== "web") {
+            buttons.push({
+              text: "Open Settings",
+              onPress: async () => {
+                try {
+                  await Linking.openSettings();
+                } catch (e) {
+                  // Settings not available
+                }
+              },
+            });
+          } else {
+            buttons.push({ text: "OK" });
+          }
           Alert.alert(
             "Permission Required",
             "Photo library access is required to add images. Please enable it in Settings.",
-            [
-              { text: "Cancel", style: "cancel" },
-              Platform.OS !== "web"
-                ? {
-                    text: "Open Settings",
-                    onPress: async () => {
-                      try {
-                        await Linking.openSettings();
-                      } catch (e) {
-                        // Settings not available
-                      }
-                    },
-                  }
-                : { text: "OK" },
-            ].filter(Boolean)
+            buttons
           );
           return;
         }
@@ -87,24 +96,33 @@ export default function PostGigScreen() {
 
   const handlePost = () => {
     if (!title.trim()) {
-      Alert.alert("Missing Title", "Please enter a title for your gig.");
+      Alert.alert("Missing Title", "Please enter a title for your post.");
       return;
     }
-    if (!price.trim() || isNaN(Number(price))) {
-      Alert.alert("Invalid Price", "Please enter a valid price.");
-      return;
+    
+    if (destination === "feed" || destination === "both") {
+      if (!price.trim() || isNaN(Number(price))) {
+        Alert.alert("Invalid Price", "Please enter a valid price for Feed posts.");
+        return;
+      }
     }
 
-    addGig({
-      title: title.trim(),
-      description: description.trim(),
-      price: Number(price),
-      category,
-      image: imageUri ? { uri: imageUri } : require("../../assets/images/icon.png"),
-      location: "Brooklyn, NY",
-      latitude: 40.6892 + (Math.random() - 0.5) * 0.05,
-      longitude: -73.9442 + (Math.random() - 0.5) * 0.05,
-    });
+    if (destination === "feed" || destination === "both") {
+      addGig({
+        title: title.trim(),
+        description: description.trim(),
+        price: Number(price) || 0,
+        category,
+        image: imageUri ? { uri: imageUri } : require("../../assets/images/icon.png"),
+        location: "Brooklyn, NY",
+        latitude: 40.6892 + (Math.random() - 0.5) * 0.05,
+        longitude: -73.9442 + (Math.random() - 0.5) * 0.05,
+      });
+    }
+
+    if (destination === "notes" || destination === "both") {
+      Alert.alert("Posted to Notes", "Your note has been shared with the community!");
+    }
 
     navigation.goBack();
   };
@@ -117,6 +135,49 @@ export default function PostGigScreen() {
           { paddingBottom: insets.bottom + Spacing.xl },
         ]}
       >
+        <View style={styles.inputGroup}>
+          <ThemedText type="small" style={styles.label}>
+            Post To
+          </ThemedText>
+          <View style={styles.destinationRow}>
+            {destinations.map((dest) => (
+              <Pressable
+                key={dest.id}
+                onPress={() => setDestination(dest.id as "feed" | "notes" | "both")}
+                style={[
+                  styles.destinationChip,
+                  {
+                    backgroundColor:
+                      destination === dest.id
+                        ? Colors.light.primary
+                        : theme.backgroundSecondary,
+                    borderColor:
+                      destination === dest.id
+                        ? Colors.light.primary
+                        : theme.border,
+                  },
+                ]}
+              >
+                <Feather
+                  name={dest.icon}
+                  size={16}
+                  color={destination === dest.id ? "#FFFFFF" : theme.text}
+                />
+                <ThemedText
+                  type="small"
+                  style={{
+                    color: destination === dest.id ? "#FFFFFF" : theme.text,
+                    fontWeight: destination === dest.id ? "600" : "400",
+                    marginLeft: Spacing.xs,
+                  }}
+                >
+                  {dest.label}
+                </ThemedText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
         <Pressable
           onPress={pickImage}
           style={[
@@ -151,7 +212,7 @@ export default function PostGigScreen() {
                 color: theme.text,
               },
             ]}
-            placeholder="What are you offering?"
+            placeholder={destination === "notes" ? "What's on your mind?" : "What are you offering?"}
             placeholderTextColor={theme.textSecondary}
             value={title}
             onChangeText={setTitle}
@@ -171,7 +232,7 @@ export default function PostGigScreen() {
                 color: theme.text,
               },
             ]}
-            placeholder="Describe your gig..."
+            placeholder={destination === "notes" ? "Share your thoughts, event details, or review..." : "Describe your gig..."}
             placeholderTextColor={theme.textSecondary}
             value={description}
             onChangeText={setDescription}
@@ -181,82 +242,86 @@ export default function PostGigScreen() {
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <ThemedText type="small" style={styles.label}>
-            Price ($)
-          </ThemedText>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.backgroundSecondary,
-                color: theme.text,
-              },
-            ]}
-            placeholder="0"
-            placeholderTextColor={theme.textSecondary}
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <ThemedText type="small" style={styles.label}>
-            Category
-          </ThemedText>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoryScroll}
-          >
-            {categories.map((cat) => (
-              <Pressable
-                key={cat}
-                onPress={() => setCategory(cat)}
+        {(destination === "feed" || destination === "both") ? (
+          <>
+            <View style={styles.inputGroup}>
+              <ThemedText type="small" style={styles.label}>
+                Price ($)
+              </ThemedText>
+              <TextInput
                 style={[
-                  styles.categoryChip,
+                  styles.input,
                   {
-                    backgroundColor:
-                      category === cat
-                        ? Colors.light.primary
-                        : theme.backgroundSecondary,
+                    backgroundColor: theme.backgroundSecondary,
+                    color: theme.text,
                   },
                 ]}
-              >
-                <ThemedText
-                  type="small"
-                  style={{
-                    color: category === cat ? "#FFFFFF" : theme.text,
-                    fontWeight: category === cat ? "600" : "400",
-                  }}
-                >
-                  {cat}
-                </ThemedText>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
+                placeholder="0"
+                placeholderTextColor={theme.textSecondary}
+                value={price}
+                onChangeText={setPrice}
+                keyboardType="numeric"
+              />
+            </View>
 
-        <View style={styles.inputGroup}>
-          <ThemedText type="small" style={styles.label}>
-            Location
-          </ThemedText>
-          <View
-            style={[
-              styles.locationDisplay,
-              { backgroundColor: theme.backgroundSecondary },
-            ]}
-          >
-            <Feather name="map-pin" size={18} color={theme.textSecondary} />
-            <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>
-              Brooklyn, NY
-            </ThemedText>
-          </View>
-        </View>
+            <View style={styles.inputGroup}>
+              <ThemedText type="small" style={styles.label}>
+                Category
+              </ThemedText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.categoryScroll}
+              >
+                {categories.map((cat) => (
+                  <Pressable
+                    key={cat}
+                    onPress={() => setCategory(cat)}
+                    style={[
+                      styles.categoryChip,
+                      {
+                        backgroundColor:
+                          category === cat
+                            ? Colors.light.primary
+                            : theme.backgroundSecondary,
+                      },
+                    ]}
+                  >
+                    <ThemedText
+                      type="small"
+                      style={{
+                        color: category === cat ? "#FFFFFF" : theme.text,
+                        fontWeight: category === cat ? "600" : "400",
+                      }}
+                    >
+                      {cat}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <ThemedText type="small" style={styles.label}>
+                Location
+              </ThemedText>
+              <View
+                style={[
+                  styles.locationDisplay,
+                  { backgroundColor: theme.backgroundSecondary },
+                ]}
+              >
+                <Feather name="map-pin" size={18} color={theme.textSecondary} />
+                <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>
+                  Brooklyn, NY
+                </ThemedText>
+              </View>
+            </View>
+          </>
+        ) : null}
 
         <Button onPress={handlePost} style={styles.postButton}>
-          Post Gig
+          {destination === "notes" ? "Share Note" : destination === "both" ? "Post to Both" : "Post Gig"}
         </Button>
       </KeyboardAwareScrollViewCompat>
     </ThemedView>
@@ -301,6 +366,18 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     paddingTop: Spacing.md,
+  },
+  destinationRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  destinationChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   categoryScroll: {
     marginHorizontal: -Spacing.lg,

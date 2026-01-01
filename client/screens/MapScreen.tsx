@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Platform, Pressable, Image, Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -14,6 +14,7 @@ import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type WebViewRef = WebView;
 
 function MiniGigCard({
   gig,
@@ -70,10 +71,20 @@ export default function MapScreen() {
   const { gigs, isOnline, userLocation, toggleOnline } = useGigs();
   const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
   const [webviewKey, setWebviewKey] = useState(0);
+  const webviewRef = useRef<WebViewRef>(null);
 
   useEffect(() => {
     setWebviewKey((prev) => prev + 1);
   }, [isOnline, userLocation]);
+
+  const zoomToMyLocation = () => {
+    if (userLocation && webviewRef.current) {
+      webviewRef.current.injectJavaScript(`
+        map.setView([${userLocation.latitude}, ${userLocation.longitude}], 16);
+        true;
+      `);
+    }
+  };
 
   const handleGigPress = (gig: Gig) => {
     navigation.navigate("GigDetail", { gig });
@@ -187,6 +198,7 @@ export default function MapScreen() {
         ]}
       >
         <WebView
+          ref={webviewRef}
           key={webviewKey}
           source={{ html: generateMapHtml() }}
           style={styles.webview}
@@ -196,8 +208,24 @@ export default function MapScreen() {
         />
       </View>
 
+      {userLocation ? (
+        <Pressable
+          onPress={zoomToMyLocation}
+          style={({ pressed }) => [
+            styles.locationButton,
+            {
+              backgroundColor: theme.cardBackground,
+              bottom: tabBarHeight + Spacing.lg,
+              opacity: pressed ? 0.8 : 1,
+            },
+          ]}
+        >
+          <Feather name="navigation" size={24} color={Colors.light.primary} />
+        </Pressable>
+      ) : null}
+
       {selectedGig ? (
-        <View style={[styles.miniCardContainer, { bottom: tabBarHeight + Spacing.lg }]}>
+        <View style={[styles.miniCardContainer, { bottom: tabBarHeight + Spacing.lg + 70 }]}>
           <MiniGigCard
             gig={selectedGig}
             onPress={() => handleGigPress(selectedGig)}
@@ -277,5 +305,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: Spacing.xs,
+  },
+  locationButton: {
+    position: "absolute",
+    right: Spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });

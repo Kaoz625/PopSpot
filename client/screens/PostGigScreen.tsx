@@ -11,7 +11,8 @@ import {
   Linking,
 } from "react-native";
 import { useNavigation, CommonActions } from "@react-navigation/native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { ThemedView } from "@/components/ThemedView";
@@ -31,7 +32,8 @@ const destinations = [
 
 export default function PostGigScreen() {
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
+  const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { addGig } = useGigs();
   const [permission, requestPermission] = ImagePicker.useMediaLibraryPermissions();
@@ -136,7 +138,10 @@ export default function PostGigScreen() {
       <KeyboardAwareScrollViewCompat
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: insets.bottom + Spacing.xl },
+          { 
+            paddingTop: headerHeight + Spacing.lg,
+            paddingBottom: tabBarHeight + Spacing.xl,
+          },
         ]}
       >
         <View style={styles.inputGroup}>

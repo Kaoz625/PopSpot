@@ -22,7 +22,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useGigs } from "@/context/GigContext";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 
-const categories = ["Food", "Services", "Art", "Tutoring", "Fitness", "Tech", "Other"];
+const categories = ["Food", "Services", "Art", "Tutoring", "Fitness", "Tech", "Hair Braiding", "House Cleaning", "Other"];
 
 export default function PostGigScreen() {
   const navigation = useNavigation();

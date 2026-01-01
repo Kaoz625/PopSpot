@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Platform, Pressable, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Platform, Pressable, Image, Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -67,8 +67,13 @@ export default function MapScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
-  const { gigs } = useGigs();
+  const { gigs, isOnline, userLocation, toggleOnline } = useGigs();
   const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
+  const [webviewKey, setWebviewKey] = useState(0);
+
+  useEffect(() => {
+    setWebviewKey((prev) => prev + 1);
+  }, [isOnline, userLocation]);
 
   const handleGigPress = (gig: Gig) => {
     navigation.navigate("GigDetail", { gig });
@@ -88,6 +93,23 @@ export default function MapScreen() {
       )
       .join("\n");
 
+    const userMarker = isOnline && userLocation
+      ? `
+      var userIcon = L.divIcon({
+        className: 'user-marker',
+        html: '<div style="width: 20px; height: 20px; background: #00A699; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+      L.marker([${userLocation.latitude}, ${userLocation.longitude}], { icon: userIcon })
+        .addTo(map)
+        .bindPopup('<b>You are here</b><br>You are online!');
+      `
+      : "";
+
+    const centerLat = userLocation ? userLocation.latitude : 40.6892;
+    const centerLng = userLocation ? userLocation.longitude : -73.9442;
+
     return `
       <!DOCTYPE html>
       <html>
@@ -101,16 +123,21 @@ export default function MapScreen() {
           .leaflet-marker-icon {
             filter: hue-rotate(340deg) saturate(1.5);
           }
+          .user-marker {
+            background: transparent !important;
+            border: none !important;
+          }
         </style>
       </head>
       <body>
         <div id="map"></div>
         <script>
-          var map = L.map('map').setView([40.6892, -73.9442], 12);
+          var map = L.map('map').setView([${centerLat}, ${centerLng}], 12);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
           }).addTo(map);
           ${markers}
+          ${userMarker}
         </script>
       </body>
       </html>
@@ -132,6 +159,27 @@ export default function MapScreen() {
     <ThemedView style={styles.container}>
       <View
         style={[
+          styles.switchContainer,
+          {
+            top: Platform.OS === "ios" ? headerHeight + Spacing.sm : Spacing.lg,
+            backgroundColor: theme.cardBackground,
+          },
+        ]}
+      >
+        <ThemedText type="body" style={styles.switchLabel}>
+          Go Online
+        </ThemedText>
+        <Switch
+          value={isOnline}
+          onValueChange={toggleOnline}
+          trackColor={{ false: theme.border, true: Colors.light.online }}
+          thumbColor="#FFFFFF"
+          ios_backgroundColor={theme.border}
+        />
+      </View>
+
+      <View
+        style={[
           styles.mapContainer,
           {
             marginTop: Platform.OS === "ios" ? headerHeight : 0,
@@ -139,6 +187,7 @@ export default function MapScreen() {
         ]}
       >
         <WebView
+          key={webviewKey}
           source={{ html: generateMapHtml() }}
           style={styles.webview}
           onMessage={handleMessage}
@@ -163,6 +212,25 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  switchContainer: {
+    position: "absolute",
+    top: Spacing.lg,
+    right: Spacing.lg,
+    zIndex: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  switchLabel: {
+    marginRight: Spacing.sm,
   },
   mapContainer: {
     flex: 1,

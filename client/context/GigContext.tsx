@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import * as Location from "expo-location";
 
 export interface Gig {
   id: string;
@@ -15,11 +16,17 @@ export interface Gig {
   isUserGig?: boolean;
 }
 
+export interface UserLocation {
+  latitude: number;
+  longitude: number;
+}
+
 interface GigContextType {
   gigs: Gig[];
   userGigs: Gig[];
   isOnline: boolean;
-  setIsOnline: (online: boolean) => void;
+  userLocation: UserLocation | null;
+  toggleOnline: () => Promise<void>;
   addGig: (gig: Omit<Gig, "id" | "sellerName" | "sellerAvatar" | "isUserGig">) => void;
   deleteGig: (id: string) => void;
 }
@@ -71,8 +78,31 @@ const initialGigs: Gig[] = [
 export function GigProvider({ children }: { children: ReactNode }) {
   const [gigs, setGigs] = useState<Gig[]>(initialGigs);
   const [isOnline, setIsOnline] = useState(false);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
 
   const userGigs = gigs.filter((gig) => gig.isUserGig);
+
+  const toggleOnline = async () => {
+    if (isOnline) {
+      setIsOnline(false);
+      setUserLocation(null);
+    } else {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+      setIsOnline(true);
+    }
+  };
 
   const addGig = (gigData: Omit<Gig, "id" | "sellerName" | "sellerAvatar" | "isUserGig">) => {
     const newGig: Gig = {
@@ -95,7 +125,8 @@ export function GigProvider({ children }: { children: ReactNode }) {
         gigs,
         userGigs,
         isOnline,
-        setIsOnline,
+        userLocation,
+        toggleOnline,
         addGig,
         deleteGig,
       }}

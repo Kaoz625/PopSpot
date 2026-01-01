@@ -55,7 +55,7 @@ export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { user, logout } = useAuth();
-  const { userGigs, isOnline, setIsOnline, deleteGig } = useGigs();
+  const { userGigs, isOnline, toggleOnline, deleteGig } = useGigs();
 
   const handleLogout = () => {
     logout();
@@ -111,7 +111,7 @@ export default function DashboardScreen() {
               </View>
               <Switch
                 value={isOnline}
-                onValueChange={setIsOnline}
+                onValueChange={toggleOnline}
                 trackColor={{
                   false: theme.backgroundTertiary,
                   true: Colors.light.online,

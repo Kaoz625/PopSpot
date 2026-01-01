@@ -10,7 +10,7 @@ import {
   Platform,
   Linking,
 } from "react-native";
-import { useNavigation, CommonActions } from "@react-navigation/native";
+import { useNavigation, CommonActions, useFocusEffect } from "@react-navigation/native";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
@@ -44,6 +44,17 @@ export default function PostGigScreen() {
   const [category, setCategory] = useState("Food");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [destination, setDestination] = useState<"feed" | "notes" | "both">("feed");
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setTitle("");
+      setDescription("");
+      setPrice("");
+      setCategory("Food");
+      setImageUri(null);
+      setDestination("feed");
+    }, [])
+  );
 
   const pickImage = async () => {
     try {

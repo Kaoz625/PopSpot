@@ -1,111 +1,33 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getApiUrl } from "@/lib/query-client";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface User {
   id: string;
   name: string;
-  profileImage: string;
-  url: string;
+  avatar: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  handleAuthToken: (token: string) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshAuth: () => Promise<void>;
+  login: () => void;
+  logout: () => void;
 }
-
-const AUTH_TOKEN_KEY = "popspot_auth_token";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [authToken, setAuthToken] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadStoredAuth();
-  }, []);
-
-  const loadStoredAuth = async () => {
-    try {
-      const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-      if (token) {
-        setAuthToken(token);
-        await fetchUser(token);
-      }
-    } catch (error) {
-      console.log("Error loading auth:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  const login = () => {
+    setUser({
+      id: "demo-user-1",
+      name: "Demo User",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
+    });
   };
 
-  const fetchUser = async (token: string) => {
-    try {
-      const response = await fetch(new URL("/api/auth/user", getApiUrl()).toString(), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (data.authenticated && data.user) {
-        setUser(data.user);
-        return true;
-      } else {
-        await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
-        setAuthToken(null);
-        setUser(null);
-        return false;
-      }
-    } catch (error) {
-      console.log("Error fetching user:", error);
-      return false;
-    }
-  };
-
-  const handleAuthToken = async (token: string) => {
-    try {
-      setIsLoading(true);
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
-      setAuthToken(token);
-      await fetchUser(token);
-    } catch (error) {
-      console.log("Error handling auth token:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const refreshAuth = async () => {
-    if (authToken) {
-      await fetchUser(authToken);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      if (authToken) {
-        await fetch(new URL("/api/auth/logout", getApiUrl()).toString(), {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        });
-      }
-      await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
-      setAuthToken(null);
-      setUser(null);
-    } catch (error) {
-      console.log("Error logging out:", error);
-      await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
-      setAuthToken(null);
-      setUser(null);
-    }
+  const logout = () => {
+    setUser(null);
   };
 
   return (
@@ -113,10 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
-        isLoading,
-        handleAuthToken,
+        login,
         logout,
-        refreshAuth,
       }}
     >
       {children}

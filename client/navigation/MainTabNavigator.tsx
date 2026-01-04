@@ -104,7 +104,7 @@ export default function MainTabNavigator() {
         component={VoiceAssistantScreen}
         options={{
           title: "",
-          headerTitle: "AI Assistant",
+          headerShown: false,
           tabBarButton: (props) => <AssistantTabButton {...props} />,
         }}
       />

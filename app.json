@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.popspot.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "PopSpot needs access to your microphone to enable voice commands for the AI Assistant."
       }
     },
     "android": {
@@ -22,7 +23,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.popspot.app"
+      "package": "com.popspot.app",
+      "permissions": ["RECORD_AUDIO"]
     },
     "web": {
       "output": "single",

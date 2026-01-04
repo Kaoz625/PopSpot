@@ -1,0 +1,17 @@
+# PopSpot Project Rules
+
+## 1. Security & Key Protection
+- NEVER modify or delete `utils/supabase.ts` without asking first.
+- If you need to use Supabase, always reference the `supabase` client from `@/utils/supabase`.
+- Do not log or expose API keys in the terminal or chat.
+
+## 2. Model & Cost Strategy (Prompt Caching)
+- You are authorized to use 'Prompt Caching'. 
+- For complex logic, use GPT-5.2.
+- For UI and styling, use Gemini 3 Flash.
+- If a library is outdated, use Perplexity (sonar-pro) to find the 2026 documentation.
+
+## 3. Development Environment
+- This project uses "Development Builds," NOT "Expo Go."
+- If you see "PluginError" or "Module not found" for native libraries, run `npx expo run:ios` (for Simulator) or `eas build --profile development --platform ios --local` for my phone.
+- Always use the `--dev-client` flag when starting the server: `npx expo start --dev-client`.

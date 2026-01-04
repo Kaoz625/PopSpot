@@ -6,7 +6,7 @@ import { BlurView } from "expo-blur";
 import FeedScreen from "@/screens/FeedScreen";
 import MapScreen from "@/screens/MapScreen";
 import NotesScreen from "@/screens/NotesScreen";
-import PostGigScreen from "@/screens/PostGigScreen";
+import VoiceAssistantScreen from "@/screens/VoiceAssistantScreen";
 import DashboardScreen from "@/screens/DashboardScreen";
 import { HeaderTitle } from "@/components/HeaderTitle";
 import { useTheme } from "@/hooks/useTheme";
@@ -15,14 +15,14 @@ import { Colors } from "@/constants/theme";
 export type MainTabParamList = {
   FeedTab: undefined;
   MapTab: undefined;
-  PostTab: undefined;
+  AssistantTab: undefined;
   NotesTab: undefined;
   DashboardTab: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-function PostTabButton({ onPress, accessibilityState }: any) {
+function AssistantTabButton({ onPress, accessibilityState }: any) {
   const isSelected = accessibilityState?.selected;
   return (
     <Pressable
@@ -33,7 +33,7 @@ function PostTabButton({ onPress, accessibilityState }: any) {
       ]}
     >
       <View style={[styles.postButtonInner, isSelected && styles.postButtonActive]}>
-        <Feather name="plus" size={28} color="#FFFFFF" />
+        <Feather name="mic" size={28} color="#FFFFFF" />
       </View>
     </Pressable>
   );
@@ -100,12 +100,12 @@ export default function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="PostTab"
-        component={PostGigScreen}
+        name="AssistantTab"
+        component={VoiceAssistantScreen}
         options={{
           title: "",
-          headerTitle: "New Post",
-          tabBarButton: (props) => <PostTabButton {...props} />,
+          headerTitle: "AI Assistant",
+          tabBarButton: (props) => <AssistantTabButton {...props} />,
         }}
       />
       <Tab.Screen

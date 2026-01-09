@@ -34,7 +34,18 @@ pod install
 
 ---
 
-## Step 2: Open Xcode Project
+## Step 2: Run pod install (Creates .xcworkspace)
+
+First, install CocoaPods dependencies. This creates the `.xcworkspace` file:
+
+```bash
+cd /Users/markanthony/Downloads/PopSpot/ios
+pod install
+```
+
+**⚠️ Note:** The `.xcworkspace` file is created by `pod install`. If you don't see it, run the command above.
+
+## Step 3: Open Xcode Project
 
 **Always use the workspace file:**
 

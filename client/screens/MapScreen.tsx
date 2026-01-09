@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Platform, Pressable, Image, Switch } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Platform,
+  Pressable,
+  Image,
+  Switch,
+  ActivityIndicator,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -71,9 +79,13 @@ export default function MapScreen() {
   const { gigs, isOnline, userLocation, toggleOnline } = useGigs();
   const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
   const [webviewKey, setWebviewKey] = useState(0);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [mapError, setMapError] = useState(false);
   const webviewRef = useRef<WebViewRef>(null);
 
   useEffect(() => {
+    setMapLoading(true);
+    setMapError(false);
     setWebviewKey((prev) => prev + 1);
   }, [isOnline, userLocation]);
 
@@ -100,12 +112,13 @@ export default function MapScreen() {
         .on('click', function() {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'marker_click', index: ${index} }));
         });
-    `
+    `,
       )
       .join("\n");
 
-    const userMarker = isOnline && userLocation
-      ? `
+    const userMarker =
+      isOnline && userLocation
+        ? `
       var userIcon = L.divIcon({
         className: 'user-marker',
         html: '<div style="width: 20px; height: 20px; background: #00A699; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
@@ -116,7 +129,7 @@ export default function MapScreen() {
         .addTo(map)
         .bindPopup('<b>You are here</b><br>You are online!');
       `
-      : "";
+        : "";
 
     const centerLat = userLocation ? userLocation.latitude : 40.6892;
     const centerLng = userLocation ? userLocation.longitude : -73.9442;
@@ -129,7 +142,7 @@ export default function MapScreen() {
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <style>
-          body { margin: 0; padding: 0; }
+          body { margin: 0; padding: 0; background: white; }
           #map { width: 100%; height: 100vh; }
           .leaflet-marker-icon {
             filter: hue-rotate(340deg) saturate(1.5);
@@ -143,12 +156,17 @@ export default function MapScreen() {
       <body>
         <div id="map"></div>
         <script>
-          var map = L.map('map').setView([${centerLat}, ${centerLng}], 12);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-          }).addTo(map);
-          ${markers}
-          ${userMarker}
+          try {
+            var map = L.map('map').setView([${centerLat}, ${centerLng}], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap'
+            }).addTo(map);
+            ${markers}
+            ${userMarker}
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'loaded' }));
+          } catch (error) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'error', message: error.message }));
+          }
         </script>
       </body>
       </html>
@@ -160,6 +178,13 @@ export default function MapScreen() {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === "marker_click") {
         setSelectedGig(gigs[data.index]);
+      } else if (data.type === "loaded") {
+        setMapLoading(false);
+        setMapError(false);
+      } else if (data.type === "error") {
+        setMapLoading(false);
+        setMapError(true);
+        console.log("Map error:", data.message);
       }
     } catch (e) {
       console.log("Message parse error:", e);
@@ -203,9 +228,70 @@ export default function MapScreen() {
           source={{ html: generateMapHtml() }}
           style={styles.webview}
           onMessage={handleMessage}
+          onLoad={() => {
+            setMapLoading(false);
+            setMapError(false);
+          }}
+          onError={() => {
+            setMapLoading(false);
+            setMapError(true);
+          }}
+          onHttpError={() => {
+            setMapLoading(false);
+            setMapError(true);
+          }}
           scrollEnabled={false}
           bounces={false}
         />
+
+        {mapLoading && (
+          <View
+            style={[
+              styles.loadingOverlay,
+              { backgroundColor: theme.backgroundRoot },
+            ]}
+          >
+            <ActivityIndicator size="large" color={Colors.light.primary} />
+            <ThemedText style={{ marginTop: Spacing.md }}>
+              Loading map...
+            </ThemedText>
+          </View>
+        )}
+
+        {mapError && (
+          <View
+            style={[
+              styles.errorOverlay,
+              { backgroundColor: theme.backgroundRoot },
+            ]}
+          >
+            <Feather name="alert-circle" size={48} color="#FF3B30" />
+            <ThemedText
+              style={{
+                marginTop: Spacing.md,
+                color: "#FF3B30",
+                textAlign: "center",
+              }}
+            >
+              Map failed to load
+            </ThemedText>
+            <Pressable
+              onPress={() => {
+                setMapError(false);
+                setMapLoading(true);
+                setWebviewKey((prev) => prev + 1);
+              }}
+              style={[
+                styles.retryButton,
+                { backgroundColor: Colors.light.primary },
+              ]}
+            >
+              <ThemedText style={{ color: "#FFFFFF", fontWeight: "600" }}>
+                Retry
+              </ThemedText>
+            </Pressable>
+          </View>
+        )}
       </View>
 
       {userLocation ? (
@@ -225,7 +311,12 @@ export default function MapScreen() {
       ) : null}
 
       {selectedGig ? (
-        <View style={[styles.miniCardContainer, { bottom: tabBarHeight + Spacing.lg + 70 }]}>
+        <View
+          style={[
+            styles.miniCardContainer,
+            { bottom: tabBarHeight + Spacing.lg + 70 },
+          ]}
+        >
           <MiniGigCard
             gig={selectedGig}
             onPress={() => handleGigPress(selectedGig)}
@@ -319,5 +410,32 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 4,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  errorOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Spacing.xl,
+    zIndex: 10,
+  },
+  retryButton: {
+    marginTop: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
   },
 });

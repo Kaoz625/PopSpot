@@ -56,3 +56,9 @@ task = "shell.exec"
 args = "npm run expo:dev"
 waitForPort = 8081
 ensurePreviewReachable = "/status"
+
+[interpreter]
+command = ["bash"]
+
+[interpreter.env]
+PATH = "/home/runner/.opencode/bin:$PATH"

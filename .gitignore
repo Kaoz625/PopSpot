@@ -41,3 +41,9 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Replit internal state
+.local/
+
+# Backup files
+.replit.backup

@@ -1,10 +1,12 @@
 import OpenAI from "openai";
 import type { Express, Request, Response } from "express";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+const openai = process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+  ? new OpenAI({
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    })
+  : null;
 
 const SYSTEM_PROMPT = `You are PopSpot's friendly AI assistant. PopSpot is a local gig marketplace app where people can discover and post side-hustles like homemade food, dog walking, tutoring, fitness training, and more.
 
@@ -29,6 +31,13 @@ export function registerVoiceAssistantRoutes(app: Express): void {
         return res.status(400).json({ error: "Message is required" });
       }
 
+      if (!openai) {
+        return res.status(503).json({
+          error:
+            "AI assistant is not configured. Please set AI_INTEGRATIONS_OPENAI_API_KEY environment variable.",
+        });
+      }
+
       const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         { role: "system", content: SYSTEM_PROMPT },
         ...conversationHistory.slice(-10),
@@ -42,7 +51,9 @@ export function registerVoiceAssistantRoutes(app: Express): void {
         temperature: 0.7,
       });
 
-      const assistantMessage = response.choices[0]?.message?.content || "I'm sorry, I couldn't process that request.";
+      const assistantMessage =
+        response.choices[0]?.message?.content ||
+        "I'm sorry, I couldn't process that request.";
 
       res.json({
         response: assistantMessage,

@@ -10,15 +10,50 @@ Download ZIP from GitHub:
 
 ---
 
-## Important: No .xcworkspace in Download
+## Important: Two Steps Before pod install
 
-The `.xcworkspace` file is NOT included in the download. This is normal!
+### Step 1: Install npm dependencies (REQUIRED!)
 
-You must generate it locally by running:
+The `pod install` command requires Node.js packages to be installed first!
 
 ```bash
-cd /Users/markanthony/Downloads/PopSpot/ios
+cd /Users/markanthony/Downloads/PopSpot-main
+npm install
+```
+
+This downloads all packages and creates `node_modules/` folder.
+
+### Step 2: Then run pod install (creates .xcworkspace)
+
+```bash
+cd /Users/markanthony/Downloads/PopSpot-main/ios
 pod install
+```
+
+This command will:
+
+- Download CocoaPods dependencies
+- Create `PopSpot.xcworkspace` file
+- Configure Xcode workspace
+
+**⚠️ CRITICAL:** If you skip `npm install`, pod install will fail with "Cannot find module 'expo/package.json'" error!
+
+---
+
+## Complete Setup Steps
+
+```bash
+# 1. Navigate to project root
+cd /Users/markanthony/Downloads/PopSpot-main
+
+# 2. Install npm dependencies (MUST BE FIRST!)
+npm install
+
+# 3. Install CocoaPods dependencies (creates .xcworkspace)
+cd ios && pod install && cd ..
+
+# 4. Open Xcode workspace (MUST use workspace file)
+open ios/PopSpot.xcworkspace
 ```
 
 This command will:

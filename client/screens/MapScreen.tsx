@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Platform, Pressable, Image, Switch } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Platform,
+  Pressable,
+  Image,
+  Switch,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -8,6 +15,7 @@ import { WebView } from "react-native-webview";
 import { Feather } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { useTheme } from "@/hooks/useTheme";
 import { useGigs, Gig } from "@/context/GigContext";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
@@ -100,12 +108,13 @@ export default function MapScreen() {
         .on('click', function() {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'marker_click', index: ${index} }));
         });
-    `
+    `,
       )
       .join("\n");
 
-    const userMarker = isOnline && userLocation
-      ? `
+    const userMarker =
+      isOnline && userLocation
+        ? `
       var userIcon = L.divIcon({
         className: 'user-marker',
         html: '<div style="width: 20px; height: 20px; background: #00A699; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
@@ -116,7 +125,7 @@ export default function MapScreen() {
         .addTo(map)
         .bindPopup('<b>You are here</b><br>You are online!');
       `
-      : "";
+        : "";
 
     const centerLat = userLocation ? userLocation.latitude : 40.6892;
     const centerLng = userLocation ? userLocation.longitude : -73.9442;
@@ -225,7 +234,12 @@ export default function MapScreen() {
       ) : null}
 
       {selectedGig ? (
-        <View style={[styles.miniCardContainer, { bottom: tabBarHeight + Spacing.lg + 70 }]}>
+        <View
+          style={[
+            styles.miniCardContainer,
+            { bottom: tabBarHeight + Spacing.lg + 70 },
+          ]}
+        >
           <MiniGigCard
             gig={selectedGig}
             onPress={() => handleGigPress(selectedGig)}
@@ -233,6 +247,8 @@ export default function MapScreen() {
           />
         </View>
       ) : null}
+
+      <FloatingActionButton />
     </ThemedView>
   );
 }

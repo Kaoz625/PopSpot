@@ -1,0 +1,48 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String!
+  photoUrl: String
+  bio: String
+  industryFocus: String
+}
+
+type Idea @table {
+  user: User!
+  title: String!
+  problem: String!
+  solution: String!
+  targetMarket: String!
+  createdAt: Timestamp!
+  businessModelCanvas: String
+  competitorAnalysis: String
+  initialFinancials: String
+}
+
+type Resource @table {
+  title: String!
+  type: String!
+  url: String!
+  createdAt: Timestamp!
+  description: String
+  tags: [String]
+}
+
+type Mentor @table {
+  name: String!
+  industryExpertise: String!
+  experience: String!
+  createdAt: Timestamp!
+  bio: String
+  contactEmail: String
+  availabilityStatus: String
+}
+
+type Investor @table {
+  name: String!
+  investmentCriteria: String!
+  contactEmail: String!
+  createdAt: Timestamp!
+  portfolio: String
+  investmentStages: String
+}

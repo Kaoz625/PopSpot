@@ -52,11 +52,11 @@ export default function WelcomeScreen() {
     }
     setIsLoading(true);
     setError(null);
-    
-    const { error } = isSignUp 
+
+    const { error } = isSignUp
       ? await signUpWithEmail(email, password)
       : await signInWithEmail(email, password);
-    
+
     setIsLoading(false);
     if (error) {
       setError(error.message);
@@ -70,10 +70,10 @@ export default function WelcomeScreen() {
     }
     setIsLoading(true);
     setError(null);
-    
+
     const { error } = await signInWithPhone(phone);
     setIsLoading(false);
-    
+
     if (error) {
       setError(error.message);
     } else {
@@ -88,10 +88,10 @@ export default function WelcomeScreen() {
     }
     setIsLoading(true);
     setError(null);
-    
+
     const { error } = await verifyPhoneOtp(phone, otp);
     setIsLoading(false);
-    
+
     if (error) {
       setError(error.message);
     }
@@ -99,7 +99,10 @@ export default function WelcomeScreen() {
 
   const handleGoogleSignIn = async () => {
     if (!isConfigured) {
-      Alert.alert("Not Configured", "Supabase authentication is not configured. Using demo mode.");
+      Alert.alert(
+        "Not Configured",
+        "Supabase authentication is not configured. Using demo mode.",
+      );
       demoLogin();
       return;
     }
@@ -113,11 +116,17 @@ export default function WelcomeScreen() {
 
   const handleAppleSignIn = async () => {
     if (Platform.OS === "android") {
-      Alert.alert("Not Available", "Apple Sign In is only available on iOS devices.");
+      Alert.alert(
+        "Not Available",
+        "Apple Sign In is only available on iOS devices.",
+      );
       return;
     }
     if (!isConfigured) {
-      Alert.alert("Not Configured", "Supabase authentication is not configured. Using demo mode.");
+      Alert.alert(
+        "Not Configured",
+        "Supabase authentication is not configured. Using demo mode.",
+      );
       demoLogin();
       return;
     }
@@ -144,7 +153,9 @@ export default function WelcomeScreen() {
           <View style={styles.googleIconContainer}>
             <ThemedText style={styles.googleIcon}>G</ThemedText>
           </View>
-          <ThemedText style={styles.authButtonText}>Continue with Google</ThemedText>
+          <ThemedText style={styles.authButtonText}>
+            Continue with Google
+          </ThemedText>
         </View>
       </Pressable>
 
@@ -176,7 +187,10 @@ export default function WelcomeScreen() {
         ]}
         onPress={() => {
           if (!isConfigured) {
-            Alert.alert("Not Configured", "Supabase authentication is not configured. Using demo mode.");
+            Alert.alert(
+              "Not Configured",
+              "Supabase authentication is not configured. Using demo mode.",
+            );
             demoLogin();
             return;
           }
@@ -187,7 +201,9 @@ export default function WelcomeScreen() {
       >
         <View style={styles.authButtonContent}>
           <Feather name="phone" size={20} color={theme.text} />
-          <ThemedText style={styles.authButtonTextDark}>Continue with Phone</ThemedText>
+          <ThemedText style={styles.authButtonTextDark}>
+            Continue with Phone
+          </ThemedText>
         </View>
       </Pressable>
 
@@ -200,7 +216,10 @@ export default function WelcomeScreen() {
         ]}
         onPress={() => {
           if (!isConfigured) {
-            Alert.alert("Not Configured", "Supabase authentication is not configured. Using demo mode.");
+            Alert.alert(
+              "Not Configured",
+              "Supabase authentication is not configured. Using demo mode.",
+            );
             demoLogin();
             return;
           }
@@ -211,14 +230,26 @@ export default function WelcomeScreen() {
       >
         <View style={styles.authButtonContent}>
           <Feather name="mail" size={20} color={theme.text} />
-          <ThemedText style={styles.authButtonTextDark}>Continue with Email</ThemedText>
+          <ThemedText style={styles.authButtonTextDark}>
+            Continue with Email
+          </ThemedText>
         </View>
       </Pressable>
 
       <View style={styles.divider}>
-        <View style={[styles.dividerLine, { backgroundColor: theme.backgroundTertiary }]} />
+        <View
+          style={[
+            styles.dividerLine,
+            { backgroundColor: theme.backgroundTertiary },
+          ]}
+        />
         <ThemedText style={styles.dividerText}>or</ThemedText>
-        <View style={[styles.dividerLine, { backgroundColor: theme.backgroundTertiary }]} />
+        <View
+          style={[
+            styles.dividerLine,
+            { backgroundColor: theme.backgroundTertiary },
+          ]}
+        />
       </View>
 
       <Pressable
@@ -251,7 +282,10 @@ export default function WelcomeScreen() {
       </ThemedText>
 
       <TextInput
-        style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text }]}
+        style={[
+          styles.input,
+          { backgroundColor: theme.backgroundSecondary, color: theme.text },
+        ]}
         placeholder="Email"
         placeholderTextColor={theme.textSecondary}
         value={email}
@@ -262,7 +296,10 @@ export default function WelcomeScreen() {
       />
 
       <TextInput
-        style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text }]}
+        style={[
+          styles.input,
+          { backgroundColor: theme.backgroundSecondary, color: theme.text },
+        ]}
         placeholder="Password"
         placeholderTextColor={theme.textSecondary}
         value={password}
@@ -293,7 +330,9 @@ export default function WelcomeScreen() {
 
       <Pressable onPress={() => setIsSignUp(!isSignUp)}>
         <ThemedText style={styles.switchText}>
-          {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
+          {isSignUp
+            ? "Already have an account? Sign In"
+            : "Don't have an account? Sign Up"}
         </ThemedText>
       </Pressable>
     </View>
@@ -311,7 +350,10 @@ export default function WelcomeScreen() {
       </ThemedText>
 
       <TextInput
-        style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text }]}
+        style={[
+          styles.input,
+          { backgroundColor: theme.backgroundSecondary, color: theme.text },
+        ]}
         placeholder="+1 (555) 123-4567"
         placeholderTextColor={theme.textSecondary}
         value={phone}
@@ -352,7 +394,11 @@ export default function WelcomeScreen() {
       </ThemedText>
 
       <TextInput
-        style={[styles.input, styles.otpInput, { backgroundColor: theme.backgroundSecondary, color: theme.text }]}
+        style={[
+          styles.input,
+          styles.otpInput,
+          { backgroundColor: theme.backgroundSecondary, color: theme.text },
+        ]}
         placeholder="000000"
         placeholderTextColor={theme.textSecondary}
         value={otp}
@@ -392,7 +438,10 @@ export default function WelcomeScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + Spacing.xl, paddingBottom: insets.bottom + Spacing.xl },
+          {
+            paddingTop: insets.top + Spacing.xl,
+            paddingBottom: insets.bottom + Spacing.xl,
+          },
         ]}
       >
         <View style={styles.header}>

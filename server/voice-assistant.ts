@@ -42,7 +42,9 @@ export function registerVoiceAssistantRoutes(app: Express): void {
         temperature: 0.7,
       });
 
-      const assistantMessage = response.choices[0]?.message?.content || "I'm sorry, I couldn't process that request.";
+      const assistantMessage =
+        response.choices[0]?.message?.content ||
+        "I'm sorry, I couldn't process that request.";
 
       res.json({
         response: assistantMessage,

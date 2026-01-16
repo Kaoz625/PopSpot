@@ -10,7 +10,11 @@ import {
   Platform,
   Linking,
 } from "react-native";
-import { useNavigation, CommonActions, useFocusEffect } from "@react-navigation/native";
+import {
+  useNavigation,
+  CommonActions,
+  useFocusEffect,
+} from "@react-navigation/native";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
@@ -23,7 +27,17 @@ import { useTheme } from "@/hooks/useTheme";
 import { useGigs } from "@/context/GigContext";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 
-const categories = ["Food", "Services", "Art", "Tutoring", "Fitness", "Tech", "Hair Braiding", "House Cleaning", "Other"];
+const categories = [
+  "Food",
+  "Services",
+  "Art",
+  "Tutoring",
+  "Fitness",
+  "Tech",
+  "Hair Braiding",
+  "House Cleaning",
+  "Other",
+];
 const destinations = [
   { id: "feed", label: "Feed Only", icon: "grid" as const },
   { id: "notes", label: "Notes Only", icon: "file-text" as const },
@@ -36,14 +50,17 @@ export default function PostGigScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { addGig } = useGigs();
-  const [permission, requestPermission] = ImagePicker.useMediaLibraryPermissions();
+  const [permission, requestPermission] =
+    ImagePicker.useMediaLibraryPermissions();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("Food");
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [destination, setDestination] = useState<"feed" | "notes" | "both">("feed");
+  const [destination, setDestination] = useState<"feed" | "notes" | "both">(
+    "feed",
+  );
 
   useFocusEffect(
     React.useCallback(() => {
@@ -53,16 +70,18 @@ export default function PostGigScreen() {
       setCategory("Food");
       setImageUri(null);
       setDestination("feed");
-    }, [])
+    }, []),
   );
 
   const pickImage = async () => {
     try {
       if (!permission?.granted) {
         if (permission?.status === "denied" && !permission?.canAskAgain) {
-          const buttons: { text: string; style?: "cancel" | "default" | "destructive"; onPress?: () => void }[] = [
-            { text: "Cancel", style: "cancel" },
-          ];
+          const buttons: {
+            text: string;
+            style?: "cancel" | "default" | "destructive";
+            onPress?: () => void;
+          }[] = [{ text: "Cancel", style: "cancel" }];
           if (Platform.OS !== "web") {
             buttons.push({
               text: "Open Settings",
@@ -80,7 +99,7 @@ export default function PostGigScreen() {
           Alert.alert(
             "Permission Required",
             "Photo library access is required to add images. Please enable it in Settings.",
-            buttons
+            buttons,
           );
           return;
         }
@@ -112,10 +131,13 @@ export default function PostGigScreen() {
       Alert.alert("Missing Title", "Please enter a title for your post.");
       return;
     }
-    
+
     if (destination === "feed" || destination === "both") {
       if (!price.trim() || isNaN(Number(price))) {
-        Alert.alert("Invalid Price", "Please enter a valid price for Feed posts.");
+        Alert.alert(
+          "Invalid Price",
+          "Please enter a valid price for Feed posts.",
+        );
         return;
       }
     }
@@ -126,7 +148,9 @@ export default function PostGigScreen() {
         description: description.trim(),
         price: Number(price) || 0,
         category,
-        image: imageUri ? { uri: imageUri } : require("../../assets/images/icon.png"),
+        image: imageUri
+          ? { uri: imageUri }
+          : require("../../assets/images/icon.png"),
         location: "Brooklyn, NY",
         latitude: 40.6892 + (Math.random() - 0.5) * 0.05,
         longitude: -73.9442 + (Math.random() - 0.5) * 0.05,
@@ -134,13 +158,16 @@ export default function PostGigScreen() {
     }
 
     if (destination === "notes" || destination === "both") {
-      Alert.alert("Posted to Notes", "Your note has been shared with the community!");
+      Alert.alert(
+        "Posted to Notes",
+        "Your note has been shared with the community!",
+      );
     }
 
     navigation.dispatch(
       CommonActions.navigate({
         name: "FeedTab",
-      })
+      }),
     );
   };
 
@@ -149,7 +176,7 @@ export default function PostGigScreen() {
       <KeyboardAwareScrollViewCompat
         contentContainerStyle={[
           styles.content,
-          { 
+          {
             paddingTop: headerHeight + Spacing.lg,
             paddingBottom: tabBarHeight + Spacing.xl,
           },
@@ -163,7 +190,9 @@ export default function PostGigScreen() {
             {destinations.map((dest) => (
               <Pressable
                 key={dest.id}
-                onPress={() => setDestination(dest.id as "feed" | "notes" | "both")}
+                onPress={() =>
+                  setDestination(dest.id as "feed" | "notes" | "both")
+                }
                 style={[
                   styles.destinationChip,
                   {
@@ -232,7 +261,11 @@ export default function PostGigScreen() {
                 color: theme.text,
               },
             ]}
-            placeholder={destination === "notes" ? "What's on your mind?" : "What are you offering?"}
+            placeholder={
+              destination === "notes"
+                ? "What's on your mind?"
+                : "What are you offering?"
+            }
             placeholderTextColor={theme.textSecondary}
             value={title}
             onChangeText={setTitle}
@@ -252,7 +285,11 @@ export default function PostGigScreen() {
                 color: theme.text,
               },
             ]}
-            placeholder={destination === "notes" ? "Share your thoughts, event details, or review..." : "Describe your gig..."}
+            placeholder={
+              destination === "notes"
+                ? "Share your thoughts, event details, or review..."
+                : "Describe your gig..."
+            }
             placeholderTextColor={theme.textSecondary}
             value={description}
             onChangeText={setDescription}
@@ -262,7 +299,7 @@ export default function PostGigScreen() {
           />
         </View>
 
-        {(destination === "feed" || destination === "both") ? (
+        {destination === "feed" || destination === "both" ? (
           <>
             <View style={styles.inputGroup}>
               <ThemedText type="small" style={styles.label}>
@@ -341,7 +378,11 @@ export default function PostGigScreen() {
         ) : null}
 
         <Button onPress={handlePost} style={styles.postButton}>
-          {destination === "notes" ? "Share Note" : destination === "both" ? "Post to Both" : "Post Gig"}
+          {destination === "notes"
+            ? "Share Note"
+            : destination === "both"
+              ? "Post to Both"
+              : "Post Gig"}
         </Button>
       </KeyboardAwareScrollViewCompat>
     </ThemedView>

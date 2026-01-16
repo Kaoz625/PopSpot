@@ -32,7 +32,9 @@ function AssistantTabButton({ onPress, accessibilityState }: any) {
         { transform: [{ scale: pressed ? 0.95 : 1 }] },
       ]}
     >
-      <View style={[styles.postButtonInner, isSelected && styles.postButtonActive]}>
+      <View
+        style={[styles.postButtonInner, isSelected && styles.postButtonActive]}
+      >
         <Feather name="mic" size={28} color="#FFFFFF" />
       </View>
     </Pressable>
@@ -112,8 +114,8 @@ export default function MainTabNavigator() {
         name="NotesTab"
         component={NotesScreen}
         options={{
-          title: "Notes",
-          headerTitle: "Community Notes",
+          title: "Posts",
+          headerTitle: "Community Posts",
           tabBarIcon: ({ color, size }) => (
             <Feather name="file-text" size={size} color={color} />
           ),
@@ -123,8 +125,8 @@ export default function MainTabNavigator() {
         name="DashboardTab"
         component={DashboardScreen}
         options={{
-          title: "Dashboard",
-          headerTitle: "Dashboard",
+          title: "Profile",
+          headerTitle: "Profile",
           tabBarIcon: ({ color, size }) => (
             <Feather name="user" size={size} color={color} />
           ),

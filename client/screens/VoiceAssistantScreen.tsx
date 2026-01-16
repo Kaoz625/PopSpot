@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { Feather } from "@expo/vector-icons";
+import Voice from "@react-native-voice/voice";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { getApiUrl, apiRequest } from "@/lib/query-client";
@@ -35,13 +36,13 @@ const aiBackground = require("@assets/images/ai-background.png");
 
 export default function VoiceAssistantScreen() {
   const insets = useSafeAreaInsets();
-  
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [webSpeechSupported, setWebSpeechSupported] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<string | null>(null);
-  
+
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0.5)).current;
   const responseOpacity = useRef(new Animated.Value(0)).current;
@@ -49,11 +50,64 @@ export default function VoiceAssistantScreen() {
 
   useEffect(() => {
     startGlowAnimation();
-    
+
+    // Initialize voice recognition for mobile (iOS/Android)
+    if (Platform.OS !== "web") {
+      const initVoice = async () => {
+        try {
+          Voice.onSpeechStart = () => {
+            setIsListening(true);
+            startPulseAnimation();
+          };
+
+          Voice.onSpeechEnd = () => {
+            setIsListening(false);
+            stopPulseAnimation();
+          };
+
+          Voice.onSpeechResults = (e: any) => {
+            if (e.value && e.value.length > 0) {
+              const transcript = e.value[0];
+              setIsListening(false);
+              stopPulseAnimation();
+              sendMessage(transcript);
+            }
+          };
+
+          Voice.onSpeechError = (e: any) => {
+            console.log("Speech error:", e);
+            setIsListening(false);
+            stopPulseAnimation();
+            setCurrentResponse(
+              "Voice recognition error. Please check microphone permissions.",
+            );
+          };
+
+          // Check if speech recognition is available
+          const available = await Voice.isAvailable();
+          // Voice.isAvailable() returns different types on different platforms
+          setVoiceSupported(Boolean(available));
+        } catch (e) {
+          console.log("Error initializing voice:", e);
+          setVoiceSupported(false);
+        }
+      };
+
+      initVoice();
+
+      return () => {
+        Voice.destroy()
+          .then(Voice.removeAllListeners)
+          .catch((e) => console.log("Voice cleanup error:", e));
+      };
+    }
+
+    // Web speech recognition
     if (Platform.OS === "web" && typeof window !== "undefined") {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
-        setWebSpeechSupported(true);
+        setVoiceSupported(true);
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = false;
         recognitionRef.current.interimResults = false;
@@ -106,7 +160,7 @@ export default function VoiceAssistantScreen() {
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   };
 
@@ -125,7 +179,7 @@ export default function VoiceAssistantScreen() {
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   };
 
@@ -134,24 +188,43 @@ export default function VoiceAssistantScreen() {
     pulseAnim.setValue(1);
   };
 
-  const toggleListening = () => {
-    if (!webSpeechSupported) {
-      setCurrentResponse("Voice is available on web. Open in browser to use voice commands.");
+  const toggleListening = async () => {
+    if (!voiceSupported) {
+      setCurrentResponse("Voice recognition is not available on this device.");
       return;
     }
 
     if (isListening) {
-      recognitionRef.current?.stop();
+      // Stop listening
+      if (Platform.OS !== "web") {
+        try {
+          await Voice.stop();
+        } catch (e) {
+          console.log("Error stopping voice:", e);
+        }
+      } else {
+        recognitionRef.current?.stop();
+      }
       setIsListening(false);
       stopPulseAnimation();
     } else {
+      // Start listening
       try {
         setCurrentResponse(null);
-        recognitionRef.current?.start();
+
+        if (Platform.OS !== "web") {
+          await Voice.start("en-US");
+        } else {
+          recognitionRef.current?.start();
+        }
+
         setIsListening(true);
         startPulseAnimation();
       } catch (e) {
         console.log("Speech recognition error:", e);
+        setCurrentResponse(
+          "Failed to start voice recognition. Please try again.",
+        );
       }
     }
   };
@@ -170,9 +243,12 @@ export default function VoiceAssistantScreen() {
         message: messageText,
         conversationHistory: messages,
       });
-      
+
       const data = await response.json();
-      const assistantMessage: Message = { role: "assistant", content: data.response };
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: data.response,
+      };
       setMessages((prev) => [...prev, assistantMessage]);
       setCurrentResponse(data.response);
     } catch (error) {
@@ -195,19 +271,21 @@ export default function VoiceAssistantScreen() {
       resizeMode="cover"
     >
       <View style={[styles.overlay]} />
-      
+
       {currentResponse ? (
         <Animated.View
           style={[
             styles.responseContainer,
-            { 
+            {
               paddingTop: insets.top + Spacing.lg,
               opacity: responseOpacity,
             },
           ]}
         >
           <BlurView intensity={40} tint="dark" style={styles.glassCard}>
-            <ThemedText style={styles.responseText}>{currentResponse}</ThemedText>
+            <ThemedText style={styles.responseText}>
+              {currentResponse}
+            </ThemedText>
           </BlurView>
         </Animated.View>
       ) : null}
@@ -254,7 +332,9 @@ export default function VoiceAssistantScreen() {
             isListening && styles.micButtonActive,
           ]}
         >
-          <Animated.View style={{ transform: [{ scale: isListening ? pulseAnim : 1 }] }}>
+          <Animated.View
+            style={{ transform: [{ scale: isListening ? pulseAnim : 1 }] }}
+          >
             <Feather
               name="mic"
               size={36}
@@ -264,10 +344,10 @@ export default function VoiceAssistantScreen() {
         </Pressable>
       </View>
 
-      {!webSpeechSupported && Platform.OS === "web" ? (
+      {!voiceSupported ? (
         <View style={[styles.hintContainer, { bottom: insets.bottom + 80 }]}>
           <ThemedText style={styles.hintText}>
-            Voice not supported in this browser
+            Voice recognition not available
           </ThemedText>
         </View>
       ) : null}

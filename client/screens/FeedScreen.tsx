@@ -15,6 +15,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { useTheme } from "@/hooks/useTheme";
 import { useGigs, Gig } from "@/context/GigContext";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
@@ -22,7 +23,18 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const categories = ["All", "Food", "Services", "Art", "Tutoring", "Fitness", "Tech", "Hair Braiding", "House Cleaning", "Other"];
+const categories = [
+  "All",
+  "Food",
+  "Services",
+  "Art",
+  "Tutoring",
+  "Fitness",
+  "Tech",
+  "Hair Braiding",
+  "House Cleaning",
+  "Other",
+];
 
 function GigCard({ gig, onPress }: { gig: Gig; onPress: () => void }) {
   const { theme } = useTheme();
@@ -91,7 +103,12 @@ export default function FeedScreen() {
   };
 
   const renderFilterChips = () => (
-    <View style={[styles.filterContainer, { paddingTop: headerHeight + Spacing.md }]}>
+    <View
+      style={[
+        styles.filterContainer,
+        { paddingTop: headerHeight + Spacing.md },
+      ]}
+    >
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -157,12 +174,16 @@ export default function FeedScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Feather name="inbox" size={48} color={theme.textSecondary} />
-            <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.md }}>
+            <ThemedText
+              type="body"
+              style={{ color: theme.textSecondary, marginTop: Spacing.md }}
+            >
               No gigs in this category
             </ThemedText>
           </View>
         }
       />
+      <FloatingActionButton />
     </ThemedView>
   );
 }

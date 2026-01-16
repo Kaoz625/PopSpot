@@ -22,13 +22,7 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-function UserGigCard({
-  gig,
-  onDelete,
-}: {
-  gig: Gig;
-  onDelete: () => void;
-}) {
+function UserGigCard({ gig, onDelete }: { gig: Gig; onDelete: () => void }) {
   const { theme } = useTheme();
 
   return (
@@ -102,7 +96,10 @@ export default function DashboardScreen() {
                   <ThemedText type="h4">
                     {isOnline ? "You're Online" : "You're Offline"}
                   </ThemedText>
-                  <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                  <ThemedText
+                    type="small"
+                    style={{ color: theme.textSecondary }}
+                  >
                     {isOnline
                       ? "Customers can see your gigs"
                       : "Go online to start receiving orders"}
@@ -143,7 +140,11 @@ export default function DashboardScreen() {
             <Feather name="briefcase" size={40} color={theme.textSecondary} />
             <ThemedText
               type="body"
-              style={{ color: theme.textSecondary, marginTop: Spacing.md, textAlign: "center" }}
+              style={{
+                color: theme.textSecondary,
+                marginTop: Spacing.md,
+                textAlign: "center",
+              }}
             >
               No active gigs yet.{"\n"}Post your first gig to get started!
             </ThemedText>

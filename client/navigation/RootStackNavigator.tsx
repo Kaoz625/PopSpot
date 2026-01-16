@@ -26,7 +26,14 @@ export default function RootStackNavigator() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.backgroundRoot }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: theme.backgroundRoot,
+        }}
+      >
         <ActivityIndicator size="large" color="#FF5A5F" />
       </View>
     );

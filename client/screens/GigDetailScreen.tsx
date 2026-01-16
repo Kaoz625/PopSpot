@@ -1,5 +1,13 @@
 import React from "react";
-import { View, StyleSheet, Image, ScrollView, Pressable, Linking, Alert } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Pressable,
+  Linking,
+  Alert,
+} from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -24,7 +32,7 @@ export default function GigDetailScreen() {
     Alert.alert(
       "Contact Seller",
       `This would open a chat with ${gig.sellerName}. In a real app, you'd be able to message the seller directly.`,
-      [{ text: "OK" }]
+      [{ text: "OK" }],
     );
   };
 
@@ -38,10 +46,17 @@ export default function GigDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.imageContainer}>
-          <Image source={gig.image} style={styles.heroImage} resizeMode="cover" />
+          <Image
+            source={gig.image}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
           <Pressable
             onPress={() => navigation.goBack()}
-            style={[styles.closeButton, { backgroundColor: theme.backgroundDefault }]}
+            style={[
+              styles.closeButton,
+              { backgroundColor: theme.backgroundDefault },
+            ]}
           >
             <Feather name="x" size={24} color={theme.text} />
           </Pressable>
@@ -69,7 +84,10 @@ export default function GigDetailScreen() {
           </ThemedText>
 
           <View style={styles.sellerRow}>
-            <Image source={{ uri: gig.sellerAvatar }} style={styles.sellerAvatar} />
+            <Image
+              source={{ uri: gig.sellerAvatar }}
+              style={styles.sellerAvatar}
+            />
             <View style={styles.sellerInfo}>
               <ThemedText type="body" style={{ fontWeight: "600" }}>
                 {gig.sellerName}
